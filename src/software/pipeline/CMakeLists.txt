@@ -333,19 +333,19 @@ if(ALICEVISION_BUILD_SFM)
     endif()
 
     # Prepare dense scene for MVS
-    alicevision_add_software(aliceVision_prepareDenseScene
-        SOURCE main_prepareDenseScene.cpp
-        FOLDER ${FOLDER_SOFTWARE_PIPELINE}
-        LINKS aliceVision_system
-              aliceVision_cmdline
-              aliceVision_image
-              aliceVision_feature
-              aliceVision_sfmData
-              aliceVision_sfmDataIO
-              Boost::program_options
-              Boost::boost
-              Boost::timer
-    )
+    # alicevision_add_software(aliceVision_prepareDenseScene
+    #     SOURCE main_prepareDenseScene.cpp
+    #     FOLDER ${FOLDER_SOFTWARE_PIPELINE}
+    #     LINKS aliceVision_system
+    #           aliceVision_cmdline
+    #           aliceVision_image
+    #           aliceVision_feature
+    #           aliceVision_sfmData
+    #           aliceVision_sfmDataIO
+    #           Boost::program_options
+    #           Boost::boost
+    #           Boost::timer
+    # )
          
 endif() # if(ALICEVISION_BUILD_SFM)
 

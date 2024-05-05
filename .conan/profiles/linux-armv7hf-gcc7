@@ -1,0 +1,16 @@
+#raspberry
+#openblas can crosscompile only fro armv8 (https://github.com/conan-io/conan-center-index/pull/21485)
+#TODO: test with arch armv8, armv8_32, armv8.3
+[settings]
+os=Linux
+arch=armv8
+compiler=gcc
+build_type=Release
+compiler.cppstd=17
+compiler.libcxx=libstdc++11
+compiler.version=10
+
+[buildenv]
+# For ubuntu env
+CC=aarch64-linux-gnu-gcc
+CXX=aarch64-linux-gnu-g++

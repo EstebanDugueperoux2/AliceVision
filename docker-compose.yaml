@@ -1,0 +1,50 @@
+services:
+  artifactory:
+    # image: docker.bintray.io/jfrog/artifactory-cpp-ce:latest
+    image: releases-docker.jfrog.io/jfrog/artifactory-cpp-ce:7.63.12
+    # image: docker.bintray.io/jfrog/artifactory-oss:7.49.6
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    volumes:
+      - type: volume
+        source: artifactory_cache
+        target: /var/opt/jfrog/artifactory
+    # To access from http://localhost:8082/ui/
+    ports:
+      - 8082:8082
+      - 8081:8081
+  conan_client:
+    # image: debian:bullseye
+    build:
+      context: conan_client
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: true
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    # volumes:
+    #   - type: bind
+    #     # source: conan_cache
+    #     source: /root/.conan2/
+    #     target: /root/.conan2/
+    # depends_on:
+    #   - artifactory
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 10G
+
+volumes:
+  conan_cache:
+  artifactory_cache:
+    # driver: local
+    # driver_opts:
+    #   type: none
+    #   device: /var/lib/docker/volumes/alicevision_artifactory_cache
+    #   o: "size=30G"

@@ -57,7 +57,7 @@ option(ALICEVISION_BUILD_SOFTWARE "Build AliceVision command line tools." ON)
 option(ALICEVISION_BUILD_COVERAGE "Enable code coverage generation (gcc only)" OFF)
 option(ALICEVISION_BUILD_SWIG_BINDING "Build the Python binding with SWIG." OFF)
 trilean_option(ALICEVISION_BUILD_LIDAR "Build AliceVision LIDAR part" AUTO)
-trilean_option(ALICEVISION_BUILD_DOC "Build AliceVision documentation" AUTO)
+trilean_option(ALICEVISION_BUILD_DOC "Build AliceVision documentation" OFF)
 
 trilean_option(ALICEVISION_USE_OPENMP "Enable OpenMP parallelization" ON)
 trilean_option(ALICEVISION_USE_CCTAG "Enable CCTAG markers" AUTO)
@@ -178,19 +178,19 @@ endmacro(add_target_properties)
 # ==============================================================================
 # Check that submodule have been initialized and updated
 # ==============================================================================
-if(ALICEVISION_USE_MESHSDFILTER AND NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/MeshSDFilter/CMakeLists.txt)
-  message(FATAL_ERROR
-    "\n submodule(s) are missing, please update your repository:\n"
-    "  > git submodule update -i\n")
-endif()
+# if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/MeshSDFilter/external)
+#   message(FATAL_ERROR
+#     "\n submodule(s) are missing, please update your repository:\n"
+#     "  > git submodule update -i\n")
+# endif()
 
 # ==============================================================================
 # Additional cmake find modules
 # ==============================================================================
-set(CMAKE_MODULE_PATH
-  ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-include(OptimizeForArchitecture)
-OptimizeForArchitecture()
+# set(CMAKE_MODULE_PATH
+#   ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+# include(OptimizeForArchitecture)
+# OptimizeForArchitecture()
 set(ALICEVISION_HAVE_SSE 0)
 if(SSE2_FOUND OR TARGET_ARCHITECTURE STREQUAL "native")
   if(MSVC AND NOT ${CMAKE_CL_64})
@@ -288,7 +288,7 @@ set(ALICEVISION_BOOST_COMPONENTS atomic container date_time graph json log log_s
 if(ALICEVISION_BUILD_TESTS)
     set(ALICEVISION_BOOST_COMPONENT_UNITTEST unit_test_framework)
 endif()
-find_package(Boost 1.76.0 QUIET COMPONENTS ${ALICEVISION_BOOST_COMPONENTS} ${ALICEVISION_BOOST_COMPONENT_UNITTEST})
+find_package(Boost REQUIRED COMPONENTS ${ALICEVISION_BOOST_COMPONENTS} ${ALICEVISION_BOOST_COMPONENT_UNITTEST})
 
 if(Boost_FOUND)
   message(STATUS "Boost ${Boost_LIB_VERSION} found.")
@@ -341,7 +341,7 @@ endif()
 # ==============================================================================
 # OpenImageIO
 # ==============================================================================
-find_package(OpenImageIO 2.0.9 REQUIRED)
+find_package(OpenImageIO REQUIRED)
 if(OPENIMAGEIO_FOUND OR OpenImageIO_FOUND)
   message(STATUS "OpenImageIO found.")
 else()
@@ -400,9 +400,9 @@ set(ALICEVISION_HAVE_ONNX 0)
 set(ALICEVISION_HAVE_ONNX_GPU 1)
 
 if(NOT ALICEVISION_USE_ONNX STREQUAL "OFF")
-  find_package(ONNXRuntime)
+  find_package(onnxruntime)
 
-  if(TARGET ONNXRuntime::ONNXRuntime)
+  if(TARGET onnxruntime::onnxruntime)
     set(ALICEVISION_HAVE_ONNX 1)
     message(STATUS "ONNXRuntime FOUND: ${ONNXRuntime_LIBRARY}")
   elseif(ALICEVISION_USE_ONNX STREQUAL "ON")
@@ -459,15 +459,16 @@ if(ALICEVISION_BUILD_SFM)
   find_package(lz4 REQUIRED)
   find_package(flann REQUIRED)
 
-  if (TARGET lz4::lz4)
-    set(FLANN_LIBRARIES flann::flann_cpp lz4::lz4)
-  elseif (TARGET LZ4::lz4_static)
-    set(FLANN_LIBRARIES flann::flann_cpp LZ4::lz4_static)
+  if (TARGET LZ4::lz4_static)
+    message(STATUS "TARGET LZ4::lz4_static")
+    set(FLANN_LIBRARIES flann::flann_cpp_s LZ4::lz4_static)
   elseif (TARGET LZ4::lz4_shared)
+    message(STATUS "TARGET LZ4::lz4_shared")
     set(FLANN_LIBRARIES flann::flann_cpp LZ4::lz4_shared)
   else()
     message(FATAL_ERROR "FLANN can not be found")
   endif()
+  message(STATUS "FLANN_LIBRARIES: ${FLANN_LIBRARIES}")
 endif()
 
 # ==============================================================================
@@ -503,8 +504,11 @@ endif()
 # ==============================================================================
 # Assimp
 # ==============================================================================
+find_package(assimp REQUIRED)
+find_package(nanoflann REQUIRED)
 if(ALICEVISION_BUILD_MVS)
   find_package(assimp REQUIRED)
+  find_package(nanoflann REQUIRED)
   message(STATUS "Assimp: ${ASSIMP_LIBRARIES}, ${ASSIMP_INCLUDE_DIRS}, ${ASSIMP_LIBRARY_DIRS}")
 endif()
 
@@ -567,15 +571,15 @@ set(ALICEVISION_HAVE_ALEMBIC 0)
 
 if(ALICEVISION_BUILD_SFM) # or ALICEVISION_BUILD_MVS
   if(NOT ALICEVISION_USE_ALEMBIC STREQUAL "OFF")
-    find_package(Alembic 1.7.0 CONFIG)
+    find_package(Alembic REQUIRED)
 
     if(Alembic_FOUND)
       set(ALICEVISION_HAVE_ALEMBIC 1)
       message(STATUS "Alembic version ${Alembic_VERSION} found.")
       # There is a missing include dependency in Alembic cmake export.
-      add_target_properties(Alembic::Alembic PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${ILMBASE_INCLUDE_DIR}"
-      )
+      # add_target_properties(Alembic::Alembic PROPERTIES
+      #   INTERFACE_INCLUDE_DIRECTORIES "${ILMBASE_INCLUDE_DIR}"
+      # )
     elseif(ALICEVISION_USE_ALEMBIC STREQUAL "ON")
       message(SEND_ERROR "Failed to find Alembic.")
     endif()
@@ -609,7 +613,7 @@ set(ALICEVISION_HAVE_OPENGV 0)
 
 if(ALICEVISION_BUILD_SFM)
   if(NOT ALICEVISION_USE_OPENGV STREQUAL "OFF")
-    find_package(opengv 1.0 CONFIG)
+    find_package(opengv REQUIRED)
     if(opengv_FOUND)
       set(ALICEVISION_HAVE_OPENGV 1)
       message(STATUS "OpenGV ${opengv_VERSION} found.")
@@ -697,7 +701,7 @@ if(NOT ALICEVISION_USE_CUDA STREQUAL "OFF")
     set(CUDA_USE_STATIC_CUDA_RUNTIME ON)
   endif()
 
-  find_package(CUDA 11.0)
+  find_package(CUDA REQUIRED)
 
   if(CUDA_FOUND)
     set(ALICEVISION_HAVE_CUDA 1)
@@ -915,11 +919,11 @@ else()
       message(STATUS "Sphinx found.")
       set(SPHINX_HTML_DIR "${CMAKE_CURRENT_BINARY_DIR}/htmlDoc")
 
-      configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/../docs/sphinx/rst/conf.py"
-        "${CMAKE_CURRENT_BINARY_DIR}/conf.py"
-        @ONLY
-      )
+      # configure_file(
+      #   "${CMAKE_CURRENT_SOURCE_DIR}/../docs/sphinx/rst/conf.py"
+      #   "${CMAKE_CURRENT_BINARY_DIR}/conf.py"
+      #   @ONLY
+      # )
 
       add_custom_target(doc ALL
         ${SPHINX_EXECUTABLE}
@@ -966,29 +970,29 @@ endif()
 # Information print
 # ==============================================================================
 message("\n")
-message("** AliceVision version: " ${ALICEVISION_VERSION})
-message("** Target architecture: " ${TARGET_ARCHITECTURE})
-message("** Build Shared libs: " ${BUILD_SHARED_LIBS})
-message("** Build SfM part: " ${ALICEVISION_BUILD_SFM})
-message("** Build MVS part: " ${ALICEVISION_BUILD_MVS})
-message("** Build LIDAR part: " ${ALICEVISION_BUILD_LIDAR})
-message("** Build AliceVision tests: " ${ALICEVISION_BUILD_TESTS})
-message("** Build AliceVision documentation: " ${ALICEVISION_HAVE_DOC})
-message("** Build AliceVision+OpenCV samples programs: " ${ALICEVISION_HAVE_OPENCV})
-message("** Build UncertaintyTE: " ${ALICEVISION_HAVE_UNCERTAINTYTE})
-message("** Build MeshSDFilter: " ${ALICEVISION_HAVE_MESHSDFILTER})
-message("** Build Alembic exporter: " ${ALICEVISION_HAVE_ALEMBIC})
-message("** Build SWIG Python binding: " ${ALICEVISION_BUILD_SWIG_BINDING})
-message("** Enable code coverage generation: " ${ALICEVISION_BUILD_COVERAGE})
-message("** Enable OpenMP parallelization: " ${ALICEVISION_HAVE_OPENMP})
-message("** Use CUDA: " ${ALICEVISION_HAVE_CUDA})
-message("** Use OpenCV SIFT features: " ${ALICEVISION_HAVE_OCVSIFT})
-message("** Use PopSift feature extractor: " ${ALICEVISION_HAVE_POPSIFT})
-message("** Use CCTAG markers: " ${ALICEVISION_HAVE_CCTAG})
-message("** Use AprilTag markers: " ${ALICEVISION_HAVE_APRILTAG})
-message("** Use OpenGV for rig localization: " ${ALICEVISION_HAVE_OPENGV})
-message("** Use ONNX: " ${ALICEVISION_HAVE_ONNX})
-message("** Use ONNX with CUDA: " ${ALICEVISION_HAVE_ONNX_GPU})
+message(STATUS "** AliceVision version: " ${ALICEVISION_VERSION})
+message(STATUS "** Target architecture: " ${TARGET_ARCHITECTURE})
+message(STATUS "** Build Shared libs: " ${BUILD_SHARED_LIBS})
+message(STATUS "** Build SfM part: " ${ALICEVISION_BUILD_SFM})
+message(STATUS "** Build MVS part: " ${ALICEVISION_BUILD_MVS})
+message(STATUS "** Build LIDAR part: " ${ALICEVISION_BUILD_LIDAR})
+message(STATUS "** Build AliceVision tests: " ${ALICEVISION_BUILD_TESTS})
+message(STATUS "** Build AliceVision documentation: " ${ALICEVISION_HAVE_DOC})
+message(STATUS "** Build AliceVision+OpenCV samples programs: " ${ALICEVISION_HAVE_OPENCV})
+message(STATUS "** Build UncertaintyTE: " ${ALICEVISION_HAVE_UNCERTAINTYTE})
+message(STATUS "** Build MeshSDFilter: " ${ALICEVISION_HAVE_MESHSDFILTER})
+message(STATUS "** Build Alembic exporter: " ${ALICEVISION_HAVE_ALEMBIC})
+message(STATUS "** Build SWIG Python binding: " ${ALICEVISION_BUILD_SWIG_BINDING})
+message(STATUS "** Enable code coverage generation: " ${ALICEVISION_BUILD_COVERAGE})
+message(STATUS "** Enable OpenMP parallelization: " ${ALICEVISION_HAVE_OPENMP})
+message(STATUS "** Use CUDA: " ${ALICEVISION_HAVE_CUDA})
+message(STATUS "** Use OpenCV SIFT features: " ${ALICEVISION_HAVE_OCVSIFT})
+message(STATUS "** Use PopSift feature extractor: " ${ALICEVISION_HAVE_POPSIFT})
+message(STATUS "** Use CCTAG markers: " ${ALICEVISION_HAVE_CCTAG})
+message(STATUS "** Use AprilTag markers: " ${ALICEVISION_HAVE_APRILTAG})
+message(STATUS "** Use OpenGV for rig localization: " ${ALICEVISION_HAVE_OPENGV})
+message(STATUS "** Use ONNX: " ${ALICEVISION_HAVE_ONNX})
+message(STATUS "** Use ONNX with CUDA: " ${ALICEVISION_HAVE_ONNX_GPU})
 message("\n")
 
 message(STATUS "EIGEN: " ${EIGEN_VERSION} "")
@@ -1021,7 +1025,7 @@ include(Helpers)
 # ==============================================================================
 # Internal libraries dependencies
 # ==============================================================================
-add_subdirectory(dependencies)
+# add_subdirectory(dependencies)
 
 # ==============================================================================
 # AliceVision modules

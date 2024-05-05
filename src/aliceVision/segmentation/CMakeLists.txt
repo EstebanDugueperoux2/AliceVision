@@ -21,7 +21,7 @@ alicevision_add_library(aliceVision_segmentation
     aliceVision_system
     aliceVision_numeric
     aliceVision_image
-    ONNXRuntime::ONNXRuntime
+    onnxruntime::onnxruntime
   PRIVATE_LINKS
     ${SEGMENTATION_PRIVATE_LINKS}
   PRIVATE_INCLUDE_DIRS

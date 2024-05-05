@@ -68,6 +68,9 @@ function(alicevision_add_library library_name)
     )
   endif()
 
+  message(STATUS "${library_name} ALICEVISION_INCLUDE_DIR: ${ALICEVISION_INCLUDE_DIR}")
+  message(STATUS "${library_name} LIBRARY_PUBLIC_INCLUDE_DIRS: ${LIBRARY_PUBLIC_INCLUDE_DIRS}")
+  message(STATUS "${library_name} LIBRARY_PRIVATE_INCLUDE_DIRS: ${LIBRARY_PRIVATE_INCLUDE_DIRS}")
 
   target_include_directories(${library_name}
     PUBLIC $<BUILD_INTERFACE:${ALICEVISION_INCLUDE_DIR}>

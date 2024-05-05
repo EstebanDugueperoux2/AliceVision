@@ -10,8 +10,8 @@
 
 #include <Eigen/Dense>
 
-#include <E57SimpleData.h>
-#include <E57SimpleReader.h>
+#include <E57Format/E57SimpleData.h>
+#include <E57Format/E57SimpleReader.h>
 
 namespace aliceVision {
 namespace dataio {
