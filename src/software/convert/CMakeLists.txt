@@ -35,17 +35,18 @@ if (ALICEVISION_BUILD_SFM)
         alicevision_add_software(aliceVision_importE57
             SOURCE main_importE57.cpp
             FOLDER ${FOLDER_SOFTWARE_CONVERT}
-            LINKS aliceVision_system
-                  aliceVision_cmdline
-                  aliceVision_feature
-                  aliceVision_sfmData
-                  aliceVision_sfmDataIO
-                  aliceVision_mesh
-                  aliceVision_fuseCut
-                  Boost::program_options
-                  Boost::json
-                  E57Format
-                  nanoflann::nanoflann
+            LINKS 
+                aliceVision_system
+                aliceVision_cmdline
+                aliceVision_feature
+                aliceVision_sfmData
+                aliceVision_sfmDataIO
+                aliceVision_mesh
+                aliceVision_fuseCut
+                Boost::program_options
+                Boost::json
+                E57Format
+                nanoflann
         )
     endif()
 

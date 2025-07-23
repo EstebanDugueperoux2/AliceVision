@@ -280,7 +280,7 @@ set(ALICEVISION_BOOST_COMPONENTS atomic container date_time graph json log log_s
 if (ALICEVISION_BUILD_TESTS)
     set(ALICEVISION_BOOST_COMPONENT_UNITTEST unit_test_framework)
 endif()
-find_package(Boost 1.76.0 QUIET COMPONENTS ${ALICEVISION_BOOST_COMPONENTS} ${ALICEVISION_BOOST_COMPONENT_UNITTEST})
+find_package(Boost REQUIRED COMPONENTS ${ALICEVISION_BOOST_COMPONENTS} ${ALICEVISION_BOOST_COMPONENT_UNITTEST})
 
 if (Boost_FOUND)
     message(STATUS "Boost ${Boost_LIB_VERSION} found.")
@@ -333,9 +333,9 @@ endif()
 # ==============================================================================
 # OpenImageIO
 # ==============================================================================
-find_package(OpenImageIO 2.0.9 REQUIRED)
-if (OPENIMAGEIO_FOUND OR OpenImageIO_FOUND)
-    message(STATUS "OpenImageIO found.")
+find_package(OpenImageIO REQUIRED)
+if(OPENIMAGEIO_FOUND OR OpenImageIO_FOUND)
+  message(STATUS "OpenImageIO found.")
 else()
     message(SEND_ERROR "Failed to find OpenImageIO.")
 endif()
@@ -451,15 +451,16 @@ if (ALICEVISION_BUILD_SFM)
     find_package(lz4 REQUIRED)
     find_package(flann REQUIRED)
 
-    if (TARGET lz4::lz4)
-        set(FLANN_LIBRARIES flann::flann_cpp lz4::lz4)
-    elseif (TARGET LZ4::lz4_static)
-        set(FLANN_LIBRARIES flann::flann_cpp LZ4::lz4_static)
-    elseif (TARGET LZ4::lz4_shared)
-        set(FLANN_LIBRARIES flann::flann_cpp LZ4::lz4_shared)
-    else()
-        message(FATAL_ERROR "FLANN can not be found")
-    endif()
+  if (TARGET LZ4::lz4_static)
+    message(STATUS "TARGET LZ4::lz4_static")
+    set(FLANN_LIBRARIES flann::flann_cpp_s LZ4::lz4_static)
+  elseif (TARGET LZ4::lz4_shared)
+    message(STATUS "TARGET LZ4::lz4_shared")
+    set(FLANN_LIBRARIES flann::flann_cpp LZ4::lz4_shared)
+  else()
+    message(FATAL_ERROR "FLANN can not be found")
+  endif()
+  message(STATUS "FLANN_LIBRARIES: ${FLANN_LIBRARIES}")
 endif()
 
 # ==============================================================================
@@ -496,8 +497,9 @@ endif()
 # Assimp
 # ==============================================================================
 if (ALICEVISION_BUILD_MVS OR ALICEVISION_BUILD_SFM)
-    find_package(assimp REQUIRED)
-    message(STATUS "Assimp: ${ASSIMP_LIBRARIES}, ${ASSIMP_INCLUDE_DIRS}, ${ASSIMP_LIBRARY_DIRS}")
+  find_package(assimp REQUIRED)
+  find_package(nanoflann REQUIRED)
+  message(STATUS "Assimp: ${ASSIMP_LIBRARIES}, ${ASSIMP_INCLUDE_DIRS}, ${ASSIMP_LIBRARY_DIRS}")
 endif()
 
 # ==============================================================================
@@ -557,21 +559,21 @@ endif()
 # ==============================================================================
 set(ALICEVISION_HAVE_ALEMBIC 0)
 
-if (ALICEVISION_BUILD_SFM) # or ALICEVISION_BUILD_MVS
-    if (NOT ALICEVISION_USE_ALEMBIC STREQUAL "OFF")
-        find_package(Alembic 1.7.0 CONFIG)
+if(ALICEVISION_BUILD_SFM) # or ALICEVISION_BUILD_MVS
+  if(NOT ALICEVISION_USE_ALEMBIC STREQUAL "OFF")
+    find_package(Alembic REQUIRED)
 
-        if (Alembic_FOUND)
-            set(ALICEVISION_HAVE_ALEMBIC 1)
-            message(STATUS "Alembic version ${Alembic_VERSION} found.")
-            # There is a missing include dependency in Alembic cmake export.
-            add_target_properties(Alembic::Alembic PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES "${ILMBASE_INCLUDE_DIR}"
-            )
-        elseif (ALICEVISION_USE_ALEMBIC STREQUAL "ON")
-            message(SEND_ERROR "Failed to find Alembic.")
-        endif()
+    if(Alembic_FOUND)
+      set(ALICEVISION_HAVE_ALEMBIC 1)
+      message(STATUS "Alembic version ${Alembic_VERSION} found.")
+      # There is a missing include dependency in Alembic cmake export.
+      add_target_properties(Alembic::Alembic PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${ILMBASE_INCLUDE_DIR}"
+      )
+    elseif(ALICEVISION_USE_ALEMBIC STREQUAL "ON")
+      message(SEND_ERROR "Failed to find Alembic.")
     endif()
+  endif()
 endif()
 
 # ==============================================================================
@@ -599,16 +601,16 @@ endif()
 # ==============================================================================
 set(ALICEVISION_HAVE_OPENGV 0)
 
-if (ALICEVISION_BUILD_SFM)
-    if (NOT ALICEVISION_USE_OPENGV STREQUAL "OFF")
-        find_package(opengv 1.0 CONFIG)
-        if (opengv_FOUND)
-            set(ALICEVISION_HAVE_OPENGV 1)
-            message(STATUS "OpenGV ${opengv_VERSION} found.")
-        elseif (ALICEVISION_USE_OPENGV STREQUAL "ON")
-            message(SEND_ERROR "Failed to find OpenGV.")
-        endif()
+if(ALICEVISION_BUILD_SFM)
+  if(NOT ALICEVISION_USE_OPENGV STREQUAL "OFF")
+    find_package(opengv REQUIRED)
+    if(opengv_FOUND)
+      set(ALICEVISION_HAVE_OPENGV 1)
+      message(STATUS "OpenGV ${opengv_VERSION} found.")
+    elseif(ALICEVISION_USE_OPENGV STREQUAL "ON")
+      message(SEND_ERROR "Failed to find OpenGV.")
     endif()
+  endif()
 
 endif()
 
@@ -689,7 +691,7 @@ if (NOT ALICEVISION_USE_CUDA STREQUAL "OFF")
         set(CUDA_USE_STATIC_CUDA_RUNTIME ON)
     endif()
 
-    find_package(CUDA 11.0)
+  find_package(CUDA REQUIRED)
 
     if (CUDA_FOUND)
         set(ALICEVISION_HAVE_CUDA 1)
@@ -962,30 +964,39 @@ endif()
 # Information print
 # ==============================================================================
 message("\n")
-message("** AliceVision version: " ${ALICEVISION_VERSION})
-message("** Target architecture: " ${TARGET_ARCHITECTURE})
-message("** Build Shared libs: " ${BUILD_SHARED_LIBS})
-message("** Build SfM part: " ${ALICEVISION_BUILD_SFM})
-message("** Build MVS part: " ${ALICEVISION_BUILD_MVS})
-message("** Build LIDAR part: " ${ALICEVISION_BUILD_LIDAR})
-message("** Build AliceVision tests: " ${ALICEVISION_BUILD_TESTS})
-message("** Build AliceVision documentation: " ${ALICEVISION_HAVE_DOC})
-message("** Build AliceVision+OpenCV samples programs: " ${ALICEVISION_HAVE_OPENCV})
-message("** Build UncertaintyTE: " ${ALICEVISION_HAVE_UNCERTAINTYTE})
-message("** Build MeshSDFilter: " ${ALICEVISION_HAVE_MESHSDFILTER})
-message("** Build Alembic exporter: " ${ALICEVISION_HAVE_ALEMBIC})
-message("** Build SWIG Python binding: " ${ALICEVISION_BUILD_SWIG_BINDING})
-message("** Enable code coverage generation: " ${ALICEVISION_BUILD_COVERAGE})
-message("** Enable OpenMP parallelization: " ${ALICEVISION_HAVE_OPENMP})
-message("** Use CUDA: " ${ALICEVISION_HAVE_CUDA})
-message("** Use OpenCV SIFT features: " ${ALICEVISION_HAVE_OCVSIFT})
-message("** Use PopSift feature extractor: " ${ALICEVISION_HAVE_POPSIFT})
-message("** Use CCTAG markers: " ${ALICEVISION_HAVE_CCTAG})
-message("** Use AprilTag markers: " ${ALICEVISION_HAVE_APRILTAG})
-message("** Use OpenGV for rig localization: " ${ALICEVISION_HAVE_OPENGV})
-message("** Use ONNX: " ${ALICEVISION_HAVE_ONNX})
-message("** Use ONNX with CUDA: " ${ALICEVISION_HAVE_ONNX_GPU})
+message(STATUS "** AliceVision version: " ${ALICEVISION_VERSION})
+message(STATUS "** Target architecture: " ${TARGET_ARCHITECTURE})
+message(STATUS "** Build Shared libs: " ${BUILD_SHARED_LIBS})
+message(STATUS "** Build SfM part: " ${ALICEVISION_BUILD_SFM})
+message(STATUS "** Build MVS part: " ${ALICEVISION_BUILD_MVS})
+message(STATUS "** Build LIDAR part: " ${ALICEVISION_BUILD_LIDAR})
+message(STATUS "** Build AliceVision tests: " ${ALICEVISION_BUILD_TESTS})
+message(STATUS "** Build AliceVision documentation: " ${ALICEVISION_HAVE_DOC})
+message(STATUS "** Build AliceVision+OpenCV samples programs: " ${ALICEVISION_HAVE_OPENCV})
+message(STATUS "** Build UncertaintyTE: " ${ALICEVISION_HAVE_UNCERTAINTYTE})
+message(STATUS "** Build MeshSDFilter: " ${ALICEVISION_HAVE_MESHSDFILTER})
+message(STATUS "** Build Alembic exporter: " ${ALICEVISION_HAVE_ALEMBIC})
+message(STATUS "** Build SWIG Python binding: " ${ALICEVISION_BUILD_SWIG_BINDING})
+message(STATUS "** Enable code coverage generation: " ${ALICEVISION_BUILD_COVERAGE})
+message(STATUS "** Enable OpenMP parallelization: " ${ALICEVISION_HAVE_OPENMP})
+message(STATUS "** Use CUDA: " ${ALICEVISION_HAVE_CUDA})
+message(STATUS "** Use OpenCV SIFT features: " ${ALICEVISION_HAVE_OCVSIFT})
+message(STATUS "** Use PopSift feature extractor: " ${ALICEVISION_HAVE_POPSIFT})
+message(STATUS "** Use CCTAG markers: " ${ALICEVISION_HAVE_CCTAG})
+message(STATUS "** Use AprilTag markers: " ${ALICEVISION_HAVE_APRILTAG})
+message(STATUS "** Use OpenGV for rig localization: " ${ALICEVISION_HAVE_OPENGV})
+message(STATUS "** Use ONNX: " ${ALICEVISION_HAVE_ONNX})
+message(STATUS "** Use ONNX with CUDA: " ${ALICEVISION_HAVE_ONNX_GPU})
 message("\n")
+
+message(STATUS "Build options:")
+get_cmake_property(_variableNames VARIABLES)
+foreach(_variableName ${_variableNames})
+    if(_variableName MATCHES "^ALICEVISION_")
+        message(STATUS "  ${_variableName} = [${${_variableName}}]")
+    endif()
+endforeach()
+
 
 message(STATUS "EIGEN: " ${EIGEN_VERSION} "")
 
@@ -1018,7 +1029,7 @@ include(Helpers)
 # ==============================================================================
 # Internal libraries dependencies
 # ==============================================================================
-add_subdirectory(dependencies)
+# add_subdirectory(dependencies)
 
 # ==============================================================================
 # AliceVision modules

@@ -1,0 +1,27 @@
+[settings]
+os=Linux
+arch=x86_64
+compiler=gcc
+compiler.cppstd=20
+compiler.version=10
+compiler.libcxx=libstdc++11
+build_type=Debug
+
+# See https://github.com/conan-io/conan-center-index/issues/25765
+[replace_requires]
+minizip/*: minizip-ng/4.0.10
+
+# [plaform_requires]
+# geogram/1.9.0
+
+[options]
+minizip-ng/*:mz_compatibility=True
+
+[conf]
+# To have opencolorio and openimageio build correctly with shared option during the conan install step
+# See https://github.com/conan-io/conan-center-index/issues/23421
+tools.build:exelinkflags = ["-fuse-ld=gold"]
+tools.build:sharedlinkflags = ["-fuse-ld=gold"]
+#tools.build:exelinkflags = ["-fuse-ld=mold"]
+#tools.build:sharedlinkflags = ["-fuse-ld=mold"]
+#See https://github.com/conan-io/conan-center-index/issues/25765

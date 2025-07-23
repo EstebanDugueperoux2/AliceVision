@@ -25,20 +25,20 @@ set(fuseCut_files_sources
 )
 
 alicevision_add_library(aliceVision_fuseCut
-    SOURCES ${fuseCut_files_headers} ${fuseCut_files_sources}
-    PUBLIC_LINKS
-        aliceVision_mvsData
-        aliceVision_mvsUtils
-        aliceVision_mesh
-        aliceVision_sfmData
-        aliceVision_system
-        Geogram::geogram
-        Boost::graph
-        Boost::container
-    PRIVATE_LINKS
-        nanoflann::nanoflann
-        Boost::boost
-        Boost::json
+  SOURCES ${fuseCut_files_headers} ${fuseCut_files_sources}
+  PUBLIC_LINKS
+    aliceVision_mvsData
+    aliceVision_mvsUtils
+    aliceVision_mesh
+    aliceVision_sfmData
+    aliceVision_system
+    Geogram::geogram
+    Boost::graph
+    Boost::container
+  PRIVATE_LINKS
+    nanoflann
+    Boost::boost
+    Boost::json
 )
 
 # Unit tests

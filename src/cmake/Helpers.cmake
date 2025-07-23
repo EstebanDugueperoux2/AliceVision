@@ -54,18 +54,24 @@ function(alicevision_add_library library_name)
         set(TRANSFORMED_LIBRARY_PUBLIC_LINKS ${LIBRARY_PUBLIC_LINKS})
     endif()
 
-    # FindCUDA.cmake implicit	target_link_libraries() can not be mixed with new signature (CMake < 3.9.0)
-    if (NOT LIBRARY_USE_CUDA)
-        target_link_libraries(${library_name}
-            PUBLIC ${TRANSFORMED_LIBRARY_PUBLIC_LINKS}
-            PRIVATE ${LIBRARY_PRIVATE_LINKS}
-        )
-    else()
-        target_link_libraries(${library_name}
-            ${TRANSFORMED_LIBRARY_PUBLIC_LINKS}
-            ${LIBRARY_PRIVATE_LINKS}
-        )
-    endif()
+  # FindCUDA.cmake implicit	target_link_libraries() can not be mixed with new signature (CMake < 3.9.0)
+  if(NOT LIBRARY_USE_CUDA)
+    target_link_libraries(${library_name}
+      PUBLIC ${TRANSFORMED_LIBRARY_PUBLIC_LINKS}
+      PRIVATE ${LIBRARY_PRIVATE_LINKS}
+    )
+  else()
+    target_link_libraries(${library_name}
+       ${TRANSFORMED_LIBRARY_PUBLIC_LINKS}
+       ${LIBRARY_PRIVATE_LINKS}
+    )
+  endif()
+
+  message(STATUS "${library_name} ALICEVISION_INCLUDE_DIR: ${ALICEVISION_INCLUDE_DIR}")
+  message(STATUS "${library_name} LIBRARY_PUBLIC_INCLUDE_DIRS: ${LIBRARY_PUBLIC_INCLUDE_DIRS}")
+  message(STATUS "${library_name} LIBRARY_PRIVATE_INCLUDE_DIRS: ${LIBRARY_PRIVATE_INCLUDE_DIRS}")
+  message(STATUS "${library_name} TRANSFORMED_LIBRARY_PUBLIC_LINKS: ${TRANSFORMED_LIBRARY_PUBLIC_LINKS}")
+  message(STATUS "${library_name} LIBRARY_PRIVATE_LINKS: ${LIBRARY_PRIVATE_LINKS}")
 
     target_include_directories(${library_name}
         PUBLIC $<BUILD_INTERFACE:${ALICEVISION_INCLUDE_DIR}>

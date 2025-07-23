@@ -692,6 +692,8 @@ if (ALICEVISION_BUILD_PHOTOMETRICSTEREO)
             )
         endif()
 
+        # /usr/bin/ld.gold: error: cannot find -laliceVision_mvsData
+        # TODO: find why this target depends of aliceVision_mvsData
         alicevision_add_software(aliceVision_lightingCalibration
             SOURCE main_lightingCalibration.cpp
             FOLDER ${FOLDER_SOFTWARE_PIPELINE}

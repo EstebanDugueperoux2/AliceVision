@@ -242,7 +242,7 @@ if (ALICEVISION_BUILD_SFM)
               Boost::program_options
     )
 
-    if (ALICEVISION_BUILD_MVS)
+    if(ALICEVISION_BUILD_MVS)
         # SfM transform
         alicevision_add_software(aliceVision_sfmTransform
             SOURCE main_sfmTransform.cpp
@@ -370,9 +370,9 @@ if (ALICEVISION_BUILD_SFM)
               aliceVision_sfmData
               aliceVision_sfmDataIO
               aliceVision_colorHarmonization
-              Coin::Clp
+              coin-clp::coin-clp
               Coin::CoinUtils
-              Coin::Osi
+              coin-osi::coin-osi
               Boost::program_options
               Boost::boost
               Boost::timer
@@ -543,18 +543,20 @@ if (ALICEVISION_BUILD_MVS)
             aliceVision_sfmDataIO
     )
 
-    # Mesh Remove Unseen Faces
-    alicevision_add_software(aliceVision_meshRemoveUnseenFaces
+    if(ALICEVISION_BUILD_MVS)
+        # Mesh Remove Unseen Faces
+        alicevision_add_software(aliceVision_meshRemoveUnseenFaces
         SOURCE main_meshRemoveUnseenFaces.cpp
         FOLDER ${FOLDER_SOFTWARE_UTILS}
         LINKS aliceVision_system
-              aliceVision_cmdline
-              aliceVision_mvsUtils
-              aliceVision_mesh
-              aliceVision_sfmData
-              aliceVision_sfmDataIO
-              Boost::program_options
+        aliceVision_cmdline
+        aliceVision_mvsUtils
+        aliceVision_mesh
+        aliceVision_sfmData
+        aliceVision_sfmDataIO
+        Boost::program_options
     )
+    endif()
 
     # Select Connected Views
     alicevision_add_software(aliceVision_selectConnectedViews
